@@ -16,7 +16,7 @@ public class EmployeeController {
 private final EmployeeService employeeService;
 	
 @PostMapping("/register")
-   public Employee register(@RequestBody   RegisterRequest registerRequest) {
+   public Employee register(@RequestBody RegisterRequest registerRequest) {
 	   Employee emp=new Employee();
 	   emp.setUserName(registerRequest.userName());
 	   emp.setRole(registerRequest.role());

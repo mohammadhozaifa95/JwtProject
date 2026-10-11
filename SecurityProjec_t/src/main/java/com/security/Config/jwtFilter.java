@@ -20,32 +20,40 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class jwtFilter  extends OncePerRequestFilter{
+public class jwtFilter extends OncePerRequestFilter {
 	private final JwtService jwtService;
 	private final UserDetailsService userDetailsService;
-	
+
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
-		String authHedar=request.getHeader("Authorization");
-		
-		if (authHedar ==null || !authHedar.startsWith("Bearer ")) {
+		String authHedar = request.getHeader("Authorization");
+
+		if (authHedar == null || !authHedar.startsWith("Bearer ")) {
 			filterChain.doFilter(request, response);
 			return;
 		}
-		String token= authHedar.substring(7);
-		
+		String token = authHedar.substring(7);
+
 		try {
 			String userName = jwtService.extractUserName(token);
-			if (userName !=null && SecurityContextHolder.getContext().getAuthentication()==null) {
+			String tokenType = jwtService.extractTokenType(token);
+
+			if (userName != null && "ACESS".equals(tokenType)
+					&& SecurityContextHolder.getContext().getAuthentication() == null) {
+
 				UserDetails userdetialDetails = userDetailsService.loadUserByUsername(userName);
-				UsernamePasswordAuthenticationToken authenticationToken=new
-				UsernamePasswordAuthenticationToken(userdetialDetails,null,userdetialDetails.getAuthorities());
-				authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-				SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+				if (jwtService.isTokenValid(userdetialDetails, token)) {
+
+					UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+							userdetialDetails, null, userdetialDetails.getAuthorities());
+					authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+					SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+				}
+
 			}
 		} catch (Exception e) {
-		e.printStackTrace();
+			e.printStackTrace();
 		}
 		filterChain.doFilter(request, response);
 	}

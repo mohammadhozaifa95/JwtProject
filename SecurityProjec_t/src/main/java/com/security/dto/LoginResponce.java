@@ -1,5 +1,5 @@
 package com.security.dto;
 
-public record LoginResponce(String token,String userName) {
+public record LoginResponce(String accessToken, String refreshToken, String userName) {
 
 }

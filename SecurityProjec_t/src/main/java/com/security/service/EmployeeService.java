@@ -7,19 +7,21 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import com.security.entity.Employee;
 import com.security.repo.EmployeeRepositry;
 
 @Service
 public class EmployeeService implements UserDetailsService {
-@Autowired
- private  	PasswordEncoder passwordEncoder;
-
-@Autowired
- private 	EmployeeRepositry employeeRepositry;
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+	@Autowired
+	private EmployeeRepositry employeeRepositry;
 
 	public Employee register(Employee employee) {
+		if (employeeRepositry.findByUserName(employee.getUserName()).isPresent()) {
+			throw new RuntimeException(
+			"Username '" + employee.getUserName() + "'already exists. Please choose another.");
+		}
 		employee.setPassword(passwordEncoder.encode(employee.getPassword()));
 		return employeeRepositry.save(employee);
 
@@ -29,7 +31,7 @@ public class EmployeeService implements UserDetailsService {
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		Employee employee = employeeRepositry.findByUserName(username).orElseThrow();
 		return User.builder().username(employee.getUserName()).roles(employee.getRole().name())
-				.password(employee.getPassword()).build();
+		.password(employee.getPassword()).build();
 	}
 
 }
